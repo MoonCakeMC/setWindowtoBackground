@@ -13,7 +13,7 @@ jobs:
           fetch-tags: true
 
       - name: Setup GCC
-        uses: egor-tensin/setup-gcc@v1
+        uses: egor-tensin/setup-mingw
         with:
           version: latest
           platform: x64
