@@ -19,7 +19,7 @@ jobs:
           platform: x64
 
       - name: Create .so file
-        run: gcc .\setWindowtoBackground.c --shared -o .\setWindowtoBackground.so
+        run: gcc setWindowtoBackground.c --shared -o setWindowtoBackground.so
 
       - name: Setup Python
         uses: actions/setup-python@v4
