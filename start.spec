@@ -6,7 +6,7 @@ added_files=[('./setWindowtoBackground.so','.'),('./icon.png','.')]
 
 
 a = Analysis(
-    ['start-withflask.py'],
+    ['start.py'],
     pathex=[],
     binaries=[],
     datas=added_files,
@@ -29,7 +29,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='start-withflask',
+    name='start',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
