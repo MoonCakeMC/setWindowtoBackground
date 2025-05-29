@@ -13,10 +13,9 @@ jobs:
           fetch-tags: true
 
       - name: Setup GCC
-        uses: egor-tensin/setup-mingw
+        uses: rlalik/setup-cpp-compiler@master
         with:
-          version: latest
-          platform: x64
+          compiler: gcc-latest
 
       - name: Create .so file
         run: gcc setWindowtoBackground.c --shared -o setWindowtoBackground.so
