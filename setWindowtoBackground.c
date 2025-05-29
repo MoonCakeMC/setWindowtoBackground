@@ -10,6 +10,7 @@ LONG now_background_long;
 HWND hWorkerW = NULL;
 HWND hProgman;
 RECT rctA;
+HWND hDesktop;
 
 BOOL CALLBACK EnumWindowsProc(_In_ HWND hwnd, _In_ LPARAM Lparam)
 {
@@ -32,6 +33,27 @@ BOOL CALLBACK MinimizeVisibleWindowsProc(HWND hwnd, LPARAM lParam)
     return TRUE; // 继续枚举窗口  
 }  
 
+BOOL CALLBACK EnumDesktopProc(_In_ HWND hwnd, _In_ LPARAM Lparam)
+{
+	HWND hDefView = FindWindowExW(hwnd, 0, L"SHELLDLL_DefView", 0);
+	if (hDefView != 0) {
+		hDesktop= FindWindowExW(hDefView, 0, L"SysListView32", 0);
+		
+		return FALSE;
+	}
+	return TRUE;
+}
+
+BOOL CALLBACK EnumfixDesktopProc(_In_ HWND hwnd, _In_ LPARAM Lparam)
+{
+	HWND hDefView = FindWindowExW(hwnd, 0, L"SHELLDLL_DefView", 0);
+	if (hDefView != 0) {
+		hDesktop= FindWindowExW(hDefView, 0, L"SysListView32", 0);
+		SetParent(hDesktop, hDefView);
+		return FALSE;
+	}
+	return TRUE;
+}
 
 void ShowBackground() {
 	
@@ -44,7 +66,6 @@ void ShowBackground() {
 }
 
 void send_to_PM() {
-	hWorkerW = FindWindowW(L"WorkerW",0);
 	if (hProgman == NULL){
 		hProgman = FindWindowW(L"Progman", 0);				// 找到PM窗口
 		SendMessageTimeout(hProgman, 0x52C, 0, 0, 0, 100, 0);	// 给它发特殊消息
@@ -60,10 +81,13 @@ void win_d(){
 }
 
 void set_to_bg() {
-	send_to_PM();
 	POINT p;
 	GetCursorPos(&p);
 	HWND hFfplay = WindowFromPoint(p);
+	EnumWindows(EnumDesktopProc, 0);
+	if(hFfplay == hDesktop){
+		return;
+	}
 	if (GetParent(hFfplay) != NULL){
 		hFfplay = GetParent(hFfplay);
 	}
@@ -73,15 +97,13 @@ void set_to_bg() {
 	now_background = hFfplay;
 	now_background_long = GetWindowLong(hFfplay, GWL_STYLE);
 	GetWindowRect(hFfplay,&rctA);
+	send_to_PM();
 	HWND hProgman = FindWindowW(L"Progman", 0);				// 找到PM窗口
-	printf("%lld %lld\n", hFfplay, hProgman) ;
 	SetParent(hFfplay, hProgman);							// 将视频窗口设置为PM的子窗口
 	state = SW_HIDE;
 	EnumWindows(EnumWindowsProc, 0);						// 找到第二个WorkerW窗口并隐藏它
 	ShowWindow(hFfplay,SW_MAXIMIZE);
-	// MoveWindow(hFfplay,0,0,GetSystemMetrics(SM_CXSCREEN),GetSystemMetrics(SM_CYSCREEN), FALSE);
 	SetWindowLong(hFfplay, GWL_STYLE,GetWindowLong(hFfplay, GWL_STYLE) & ~(WS_CAPTION | WS_SIZEBOX));
-	// EnumWindows(MinimizeVisibleWindowsProc, 0); //枚举所有顶级窗口，并将它们最小化
 	win_d();
 }
 
@@ -94,6 +116,10 @@ void show_bg() {
 }
 
 void py_exit(){exit(0);}
+
+void fix_desktop() {
+	EnumWindows(EnumfixDesktopProc, 0);
+}
 
 HWND x15;
 void hide_win() {
@@ -134,6 +160,9 @@ int main()
     if (0 == RegisterHotKey(NULL, 4, MOD_CONTROL, VK_F4)) {
         // printf("%s\n",GetLastError());
     }
+    if (0 == RegisterHotKey(NULL, 5, MOD_CONTROL, VK_F5)) {
+        // printf("%s\n",GetLastError());
+    }
 
     // 消息循环
 	
@@ -153,6 +182,9 @@ int main()
 			}
 			if (4 == msg.wParam) {
 				hide_win();
+			}
+			if (5 == msg.wParam) {
+				fix_desktop();
 			}
             break;
         }
